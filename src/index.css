@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  body {
+    @apply bg-background text-on-background font-sans antialiased;
+  }
+
+  #root {
+    @apply min-h-screen flex flex-col;
+  }
+}
+
+@layer components {
+  .hero-backlit {
+    @apply relative isolate rounded-xl;
+    transform-style: preserve-3d;
+    transition: transform 150ms ease-out;
+  }
+
+  .hero-backlit-border {
+    overflow: hidden;
+    border-radius: 0.5rem;
+    padding: 1px;
+    background: conic-gradient(
+      from 140deg,
+      #b000e8,
+      #009ffd,
+      #4edea3,
+      #adc6ff,
+      #e879f9,
+      #facc15,
+      #b000e8
+    );
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  .hero-backlit-frame {
+    @apply relative z-10 overflow-hidden rounded-[10px] bg-surface-container-low;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-backlit {
+      transition: none;
+    }
+  }
+
+  .partner-ad-border {
+    overflow: hidden;
+    border-radius: 0.5rem;
+    padding: 2px;
+    background: conic-gradient(
+      from 0deg,
+      #ff3366 0deg,
+      #ff9500 45deg,
+      #facc15 90deg,
+      #4ade80 135deg,
+      #06b6d4 180deg,
+      #009ffd 225deg,
+      #8b5cf6 270deg,
+      #e879f9 315deg,
+      #ff3366 360deg
+    );
+  }
+
+  .partner-ad-frame {
+    @apply relative overflow-hidden rounded-[6px];
+  }
+}
+
+@layer utilities {
+  .drag-zone-active {
+    @apply border-primary bg-primary/5;
+  }
+}
