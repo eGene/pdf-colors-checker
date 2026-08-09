@@ -23,13 +23,20 @@ const FEATURES = [
     title: 'Color picker',
     body: 'Click anywhere on a rendered page to sample HEX, RGB, and approximate CMYK from pixels — an eyedropper for PDF artwork in your browser.',
   },
-];
+] as const;
+
+const SAVE_INK = {
+  icon: 'water_drop',
+  iconClass: 'text-secondary',
+  title: 'Save Ink',
+  body: 'Optimize a copy for less ink or toner — grayscale, lighter images, economy text, or flatten — entirely on your device. Your file never leaves your browser.',
+} as const;
 
 export default function FeatureCards() {
   return (
     <section className="mx-auto max-w-container-max px-margin-edge pb-16">
       <p className="mb-6 text-label-sm uppercase tracking-widest text-text-secondary">
-        Spot colors, ICC output intent, and per-page ink coverage
+        Spot colors, ICC output intent, per-page ink coverage, and Save Ink
       </p>
       <div className="grid grid-cols-1 gap-gutter md:grid-cols-2 xl:grid-cols-4">
         {FEATURES.map(({ icon, iconClass, title, body }) => (
@@ -43,6 +50,15 @@ export default function FeatureCards() {
           </article>
         ))}
       </div>
+      <article className="mt-gutter rounded-xl border border-border-subtle bg-surface p-8 transition-colors hover:bg-surface-container-low md:flex md:items-start md:gap-8">
+        <span className={`material-symbols-outlined mb-6 shrink-0 text-4xl md:mb-0 ${SAVE_INK.iconClass}`}>
+          {SAVE_INK.icon}
+        </span>
+        <div>
+          <h2 className="mb-3 text-headline-md font-semibold text-text-primary">{SAVE_INK.title}</h2>
+          <p className="max-w-3xl text-body-md text-text-secondary">{SAVE_INK.body}</p>
+        </div>
+      </article>
     </section>
   );
 }

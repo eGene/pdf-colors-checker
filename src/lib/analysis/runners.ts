@@ -216,6 +216,11 @@ export function markPickerReady(dispatch: RunnerDispatch): void {
   dispatch({ type: 'SET_PROCESSING', isProcessing: false, label: null });
 }
 
+/** Save Ink does not auto-analyze — clear the upload overlay so options are usable. */
+export function markEcoReady(dispatch: RunnerDispatch): void {
+  dispatch({ type: 'SET_PROCESSING', isProcessing: false, label: null });
+}
+
 /**
  * Start analysis for a tab. Single dispatch point for upload, tab-change, and reanalyze.
  * Picker has no runner — callers handle CLEAR_PICKER / markPickerReady separately.
@@ -226,6 +231,10 @@ export function runAnalysisKind(
   ctx: TabRunContext,
 ): void {
   if (tab === ANALYSIS_KINDS.PICKER) return;
+  if (tab === ANALYSIS_KINDS.ECO) {
+    markEcoReady(dispatch);
+    return;
+  }
 
   if (tab === ANALYSIS_KINDS.RGB) {
     if (!ctx.pages?.length || !ctx.file) return;

@@ -1,6 +1,6 @@
 # PDF Colors Checker
 
-Browser-based PDF color analysis tool: color vs black-and-white pages, CMYK ink coverage (Ghostscript), color profile inspection, and a page color picker.
+Browser-based PDF color analysis tool: color vs black-and-white pages, CMYK ink coverage (Ghostscript), color profile inspection, a page color picker, and Save Ink optimization.
 
 **Live:** [https://gosignpdf.com/colors-checker/](https://gosignpdf.com/colors-checker/)
 
@@ -12,14 +12,17 @@ Your PDF stays on your device — analysis runs entirely in the browser (no file
 - **Ink coverage (CMYK)** — Ghostscript `inkcov` in WebAssembly
 - **Color profile** — structural scan for RGB/CMYK/gray, spot colors, ICC (via pdf-lib)
 - **Color picker** — sample HEX / RGB / approximate CMYK from rendered pages
+- **Save Ink** — optimize a copy for less ink/toner (grayscale, image handling, economy text, flatten)
 
 ## License
 
 This project is licensed under the **[GNU Affero General Public License v3.0](LICENSE)** (AGPL-3.0).
 
+Third-party notices for Save Ink (ecofonts MIT, clipper-lib BSL-1.0) are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
 ### Ghostscript
 
-CMYK analysis uses **Ghostscript 10.06** WebAssembly from [`@okathira/ghostpdl-wasm`](https://www.npmjs.com/package/@okathira/ghostpdl-wasm) (loaded at runtime from `node_modules`).
+CMYK analysis and Save Ink use **Ghostscript 10.06** WebAssembly from [`@okathira/ghostpdl-wasm`](https://www.npmjs.com/package/@okathira/ghostpdl-wasm) (loaded at runtime from `node_modules`).
 
 Ghostscript is copyright © Artifex Software, Inc. and is available under the AGPL (or a commercial license from Artifex). See [Artifex licensing](https://artifex.com/licensing/) and [Ghostscript](https://www.ghostscript.com/).
 

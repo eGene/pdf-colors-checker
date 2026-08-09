@@ -1,6 +1,7 @@
 import { ANALYSIS_KINDS, getAnalysisKindLabel } from '@/lib/constants';
 import { CmykIncludeAnnotationsField, CmykThresholdField, RgbThresholdField } from '@/features/results/ThresholdFields';
 import type { AnalysisParamsProps } from '@/features/upload/types';
+import { ecoPresetBalanced, ecoPresetLight } from '@/types/ecoOptimize';
 
 export default function AnalysisParams({
   initialTab,
@@ -11,6 +12,8 @@ export default function AnalysisParams({
   setCmykInkThreshold,
   cmykIncludeAnnotations,
   setCmykIncludeAnnotations,
+  ecoOptions,
+  setEcoOptions,
   idPrefix = '',
 }: AnalysisParamsProps) {
   const tabId = `${idPrefix}initial-tab`;
@@ -32,6 +35,7 @@ export default function AnalysisParams({
             <option value={ANALYSIS_KINDS.CMYK}>{getAnalysisKindLabel(ANALYSIS_KINDS.CMYK)}</option>
             <option value={ANALYSIS_KINDS.PROFILE}>{getAnalysisKindLabel(ANALYSIS_KINDS.PROFILE)}</option>
             <option value={ANALYSIS_KINDS.PICKER}>{getAnalysisKindLabel(ANALYSIS_KINDS.PICKER)}</option>
+            <option value={ANALYSIS_KINDS.ECO}>{getAnalysisKindLabel(ANALYSIS_KINDS.ECO)}</option>
           </select>
           <span
             className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-[20px] text-text-secondary"
@@ -41,7 +45,7 @@ export default function AnalysisParams({
           </span>
         </div>
         <p className="mt-2 text-label-sm text-text-secondary/60">
-          Which analysis opens first. All four are available as tabs after upload.
+          Which analysis opens first. All five are available as tabs after upload.
         </p>
       </div>
       {initialTab === ANALYSIS_KINDS.RGB && (
@@ -62,6 +66,45 @@ export default function AnalysisParams({
             />
           )}
         </>
+      )}
+      {initialTab === ANALYSIS_KINDS.ECO && setEcoOptions != null && (
+        <div className="space-y-3">
+          <p className="text-label-sm text-text-secondary">
+            Vector presets only. Flatten (image-only) is available on the Save Ink tab after upload,
+            with a clear warning. Your file never leaves your device.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setEcoOptions(ecoPresetLight())}
+              className={`rounded-lg border px-4 py-2 text-label-md ${
+                ecoOptions?.grayscale && ecoOptions?.images === 'keep' && !ecoOptions?.ecoFonts
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border-subtle'
+              }`}
+            >
+              Light
+            </button>
+            <button
+              type="button"
+              onClick={() => setEcoOptions(ecoPresetBalanced())}
+              className={`rounded-lg border px-4 py-2 text-label-md ${
+                ecoOptions?.grayscale &&
+                ecoOptions?.images === 'downsample' &&
+                ecoOptions?.ecoFonts
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border-subtle'
+              }`}
+            >
+              Balanced
+            </button>
+          </div>
+          <p className="text-label-sm text-text-secondary/70">
+            Light: grayscale for a smaller, simpler file that avoids color-cartridge use (may
+            increase black toner on printers already rendering text in K only). Balanced: grayscale
+            + downsample images + economy text when fonts are embedded.
+          </p>
+        </div>
       )}
     </div>
   );

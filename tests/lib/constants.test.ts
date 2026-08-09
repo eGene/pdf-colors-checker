@@ -64,6 +64,7 @@ describe('constants', () => {
       expect(normalizeAnalysisKind('rgb')).toBe(ANALYSIS_KINDS.RGB);
       expect(normalizeAnalysisKind('RGB')).toBe(ANALYSIS_KINDS.RGB);
       expect(normalizeAnalysisKind('CMYK')).toBe(ANALYSIS_KINDS.CMYK);
+      expect(normalizeAnalysisKind('eco')).toBe(ANALYSIS_KINDS.ECO);
     });
 
     it('returns null for invalid values', () => {

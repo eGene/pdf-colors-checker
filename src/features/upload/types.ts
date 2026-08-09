@@ -1,4 +1,5 @@
 import type { AnalysisKind } from '@/types/analysis';
+import type { EcoOptions } from '@/types/ecoOptimize';
 
 export interface AnalysisParamsProps {
   initialTab: AnalysisKind;
@@ -9,6 +10,8 @@ export interface AnalysisParamsProps {
   setCmykInkThreshold?: (value: number) => void;
   cmykIncludeAnnotations?: boolean;
   setCmykIncludeAnnotations?: (value: boolean) => void;
+  ecoOptions?: EcoOptions;
+  setEcoOptions?: (options: Partial<EcoOptions>) => void;
   idPrefix?: string;
 }
 

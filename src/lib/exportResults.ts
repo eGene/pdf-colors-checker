@@ -141,6 +141,8 @@ export function exportActiveTab(params: ActiveTabExportParams): ExportResult | n
       return profileResult ? exportProfile({ profileResult }) : null;
     case 'picker':
       return exportPicks({ colorPicks });
+    case 'eco':
+      return null;
     default:
       return null;
   }

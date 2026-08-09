@@ -16,6 +16,7 @@ export default function ResultsShell({ children }: ResultsShellProps) {
 
   const heading = ANALYSIS_KIND_HEADINGS[activeTab] ?? 'Results';
   const isPickerTab = activeTab === ANALYSIS_KINDS.PICKER;
+  const isEcoTab = activeTab === ANALYSIS_KINDS.ECO;
   const fileName = file?.name;
 
   return (
@@ -90,7 +91,7 @@ export default function ResultsShell({ children }: ResultsShellProps) {
           <span className="material-symbols-outlined text-[20px]">
             {isPickerTab ? 'mop' : 'play_arrow'}
           </span>
-          {isPickerTab ? 'Clear picks' : 'Re-analyze'}
+          {isPickerTab ? 'Clear picks' : isEcoTab ? 'Optimize again' : 'Re-analyze'}
         </button>
         <button
           type="button"

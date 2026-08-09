@@ -1,6 +1,8 @@
 import loadGhostscript from '@okathira/ghostpdl-wasm';
 import type { GhostscriptModule } from '@okathira/ghostpdl-wasm';
 import gsWasmUrl from '@okathira/ghostpdl-wasm/gs.wasm?url';
+import { gsRunSucceeded } from '@/lib/ghostscript/gsErrors';
+import { inkcovArgs } from '@/lib/ecoOptimize/gsArgs';
 
 interface GsJob {
   id: number;
@@ -14,17 +16,6 @@ interface GsJob {
 export interface GhostscriptInkcovInput {
   pdfBytes: ArrayBuffer;
   includeAnnotations?: boolean;
-}
-
-function inkcovArgs(includeAnnotations: boolean): string[] {
-  return [
-    '-sDEVICE=inkcov',
-    `-dShowAnnots=${includeAnnotations ? 'true' : 'false'}`,
-    '-q',
-    '-o',
-    '-',
-    'input.pdf',
-  ];
 }
 
 let gsModulePromise: Promise<GhostscriptModule> | undefined;
@@ -50,29 +41,10 @@ function getGsModule(): Promise<GhostscriptModule> {
       printErr: gsPrintErr,
       // Vite emits a hashed asset; okathira's default import.meta.url + "gs.wasm"
       // would request an unhashed path and get index.html back (SPA fallback).
-      locateFile: (path) => (path.endsWith('.wasm') ? gsWasmUrl : path),
+      locateFile: (path: string) => (path.endsWith('.wasm') ? gsWasmUrl : path),
     });
   }
   return gsModulePromise!;
-}
-
-function gsExitStatus(error: unknown): number | null {
-  if (error && typeof error === 'object' && 'status' in error) {
-    const status = (error as { status: unknown }).status;
-    if (typeof status === 'number') return status;
-  }
-  const msg = String((error as Error)?.message || error);
-  const exitMatch = msg.match(/exit(?: code)?[:= ]+(\d+)/i) || msg.match(/ExitStatus[^0-9]*(\d+)/);
-  if (exitMatch) return Number(exitMatch[1]);
-  return null;
-}
-
-function gsRunSucceeded(error: unknown): boolean {
-  if (!error) return true;
-  const status = gsExitStatus(error);
-  if (status != null) return status === 0;
-  const msg = String((error as Error)?.message || error);
-  return msg.includes('Program terminated') && !/exit code 1|exit\(1\)/i.test(msg);
 }
 
 function finishJob(job: GsJob, ok: boolean): void {
@@ -91,7 +63,7 @@ function executeJob(mod: GhostscriptModule, job: GsJob): void {
   let ok = false;
   try {
     mod.FS.writeFile('input.pdf', new Uint8Array(job.pdfBytes));
-    mod.callMain(inkcovArgs(job.includeAnnotations));
+    mod.callMain(inkcovArgs({ showAnnots: job.includeAnnotations }));
     ok = true;
   } catch (e) {
     ok = gsRunSucceeded(e);
@@ -131,6 +103,17 @@ export function cancelGsColorsJobs(): void {
   jobQueue.length = 0;
   processing = false;
   activeJob = null;
+}
+
+/**
+ * Drop the CMYK tab's singleton module so eco's worker chain does not
+ * compete with a growable GS heap on the main thread. Only safe when idle —
+ * nulling mid-flight just forces the next queued job to instantiate a second
+ * module alongside the live one.
+ */
+export function releaseGhostscriptModule(): void {
+  if (processing || jobQueue.length > 0) return;
+  gsModulePromise = undefined;
 }
 
 export function runGhostscriptInkcov(

@@ -9,6 +9,21 @@ import type { AnalysisKind, InkCoverageRow, TabState } from '@/types/analysis';
 import type { ColorProfileResult } from '@/types/profile';
 import type { ColorPick } from '@/types/pdf';
 import type { HistoryEntry } from '@/types/history';
+import type {
+  DocumentSafety,
+  EcoOptions,
+  EcoProgress,
+  EcoPreviewSide,
+  EcoResult,
+  InkPlateTotals,
+} from '@/types/ecoOptimize';
+import {
+  createInitialEcoSlice,
+  lruPreviewWindow,
+  revokeDownload,
+  revokeUrlMap,
+  type EcoSessionSlice,
+} from '@/features/session/ecoSession';
 
 export const UPLOAD_ERROR_MESSAGE = 'Could not process this PDF. Please try another file.';
 
@@ -29,6 +44,7 @@ export interface SessionState {
   pickerPageIndex: number;
   colorPicks: ColorPick[];
   currentColorPick: ColorPick | null;
+  eco: EcoSessionSlice;
   isProcessing: boolean;
   processingLabel: string | null;
   uploadError: string | null;
@@ -61,6 +77,23 @@ export type SessionAction =
   | { type: 'SET_COLOR_PICKS'; picks: ColorPick[] }
   | { type: 'SET_CURRENT_PICK'; pick: ColorPick | null }
   | { type: 'CLEAR_PICKER' }
+  | { type: 'SET_ECO_OPTIONS'; options: Partial<EcoOptions> }
+  | { type: 'ECO_SAFETY_START' }
+  | { type: 'ECO_SAFETY_CHECKED'; safety: DocumentSafety }
+  | { type: 'ECO_SAFETY_FAILED'; error: string }
+  | { type: 'ECO_PREVIEW_PAGE_READY'; side: EcoPreviewSide; page: number; url: string }
+  | { type: 'ECO_PREVIEW_PAGE_FAILED'; side: EcoPreviewSide; page: number; message: string }
+  | { type: 'ECO_PREVIEW_CLEAR_ERROR'; side: EcoPreviewSide; page: number }
+  | { type: 'ECO_OPTIMIZE_START' }
+  | { type: 'ECO_OPTIMIZE_PROGRESS'; progress: EcoProgress }
+  | {
+      type: 'ECO_OPTIMIZE_DONE';
+      result: EcoResult;
+      beforeInk: InkPlateTotals;
+      afterInk: InkPlateTotals;
+    }
+  | { type: 'ECO_OPTIMIZE_FAILED'; error: string }
+  | { type: 'ECO_OPTIMIZE_CANCELLED' }
   | { type: 'SET_HISTORY'; history: HistoryEntry[] }
   | { type: 'SET_SELECTED_HISTORY'; entry: HistoryEntry | null }
   | { type: 'TOGGLE_SELECTED_HISTORY'; entry: HistoryEntry }
@@ -84,6 +117,7 @@ export function createInitialState(): SessionState {
     pickerPageIndex: 0,
     colorPicks: [],
     currentColorPick: null,
+    eco: createInitialEcoSlice(),
     isProcessing: false,
     processingLabel: null,
     uploadError: null,
@@ -108,7 +142,10 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
       return { ...state, cmykAnnotationNote: action.note };
     case 'SET_UPLOAD_ERROR':
       return { ...state, uploadError: action.error };
-    case 'START_FILE_PROCESSING':
+    case 'START_FILE_PROCESSING': {
+      revokeUrlMap(state.eco.previewBefore);
+      revokeUrlMap(state.eco.previewAfter);
+      revokeDownload(state.eco.result);
       return {
         ...createInitialState(),
         history: state.history,
@@ -116,9 +153,15 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
         activeTab: action.initialTab,
         thresholds: state.thresholds,
         cmykIncludeAnnotations: state.cmykIncludeAnnotations,
+        // Keep Save Ink presets chosen on the upload screen.
+        eco: {
+          ...createInitialEcoSlice(),
+          options: state.eco.options,
+        },
         isProcessing: true,
         uploadError: null,
       };
+    }
     case 'FILE_LOADED':
       return {
         ...state,
@@ -235,6 +278,165 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
       return { ...state, currentColorPick: action.pick };
     case 'CLEAR_PICKER':
       return { ...state, colorPicks: [], currentColorPick: null };
+    case 'SET_ECO_OPTIONS':
+      return {
+        ...state,
+        eco: { ...state.eco, options: { ...state.eco.options, ...action.options } },
+      };
+    case 'ECO_SAFETY_START':
+      return {
+        ...state,
+        eco: { ...state.eco, phase: 'safety', error: null, progress: null },
+        tabs: {
+          ...state.tabs,
+          eco: { status: TAB_STATUS.RUNNING, progress: 0, error: null },
+        },
+      };
+    case 'ECO_SAFETY_CHECKED':
+      return {
+        ...state,
+        eco: {
+          ...state.eco,
+          phase: action.safety.error || action.safety.encrypted ? 'error' : 'idle',
+          safety: action.safety,
+          error: action.safety.error ?? null,
+          // Drop race failures from PREVIEW_PAGE before CACHE_FILE completed.
+          previewErrors: {},
+        },
+        tabs: {
+          ...state.tabs,
+          eco: {
+            status: action.safety.error || action.safety.encrypted ? TAB_STATUS.ERROR : TAB_STATUS.DONE,
+            progress: 0,
+            error: action.safety.error ?? null,
+          },
+        },
+      };
+    case 'ECO_SAFETY_FAILED':
+      return {
+        ...state,
+        eco: { ...state.eco, phase: 'error', error: action.error, progress: null },
+        tabs: {
+          ...state.tabs,
+          eco: { status: TAB_STATUS.ERROR, progress: 0, error: action.error },
+        },
+      };
+    case 'ECO_PREVIEW_PAGE_READY': {
+      const key = action.side === 'before' ? 'previewBefore' : 'previewAfter';
+      const prevMap = { ...state.eco[key] };
+      if (prevMap[action.page]) {
+        try {
+          URL.revokeObjectURL(prevMap[action.page]);
+        } catch {
+          /* ignore */
+        }
+      }
+      prevMap[action.page] = action.url;
+      const trimmed = lruPreviewWindow(prevMap, action.page, 2);
+      const errKey = `${action.side}:${action.page}`;
+      const previewErrors = { ...state.eco.previewErrors };
+      delete previewErrors[errKey];
+      return {
+        ...state,
+        eco: { ...state.eco, [key]: trimmed, previewErrors },
+      };
+    }
+    case 'ECO_PREVIEW_PAGE_FAILED':
+      return {
+        ...state,
+        eco: {
+          ...state.eco,
+          previewErrors: {
+            ...state.eco.previewErrors,
+            [`${action.side}:${action.page}`]: action.message,
+          },
+        },
+      };
+    case 'ECO_PREVIEW_CLEAR_ERROR': {
+      const errKey = `${action.side}:${action.page}`;
+      const previewErrors = { ...state.eco.previewErrors };
+      delete previewErrors[errKey];
+      return { ...state, eco: { ...state.eco, previewErrors } };
+    }
+    case 'ECO_OPTIMIZE_START': {
+      revokeUrlMap(state.eco.previewAfter);
+      const previewErrors = { ...state.eco.previewErrors };
+      for (const k of Object.keys(previewErrors)) {
+        if (k.startsWith('after:')) delete previewErrors[k];
+      }
+      return {
+        ...state,
+        eco: {
+          ...state.eco,
+          phase: 'optimize',
+          progress: { phase: 'Starting', current: 0, total: 1 },
+          previewAfter: {},
+          previewErrors,
+          error: null,
+        },
+        tabs: {
+          ...state.tabs,
+          eco: { status: TAB_STATUS.RUNNING, progress: 0, error: null },
+        },
+      };
+    }
+    case 'ECO_OPTIMIZE_PROGRESS':
+      return {
+        ...state,
+        eco: { ...state.eco, phase: 'optimize', progress: action.progress },
+        tabs: {
+          ...state.tabs,
+          eco: {
+            ...state.tabs.eco,
+            progress: action.progress.current,
+          },
+        },
+      };
+    case 'ECO_OPTIMIZE_DONE': {
+      revokeDownload(state.eco.result);
+      return {
+        ...state,
+        eco: {
+          ...state.eco,
+          phase: 'done',
+          progress: null,
+          result: action.result,
+          beforeInk: action.beforeInk,
+          afterInk: action.afterInk,
+          error: null,
+        },
+        tabs: {
+          ...state.tabs,
+          eco: { status: TAB_STATUS.DONE, progress: 1, error: null },
+        },
+      };
+    }
+    case 'ECO_OPTIMIZE_FAILED':
+      return {
+        ...state,
+        eco: { ...state.eco, phase: 'error', progress: null, error: action.error },
+        tabs: {
+          ...state.tabs,
+          eco: { status: TAB_STATUS.ERROR, progress: 0, error: action.error },
+        },
+      };
+    case 'ECO_OPTIMIZE_CANCELLED':
+      return {
+        ...state,
+        eco: {
+          ...state.eco,
+          phase: state.eco.result ? 'done' : 'idle',
+          progress: null,
+        },
+        tabs: {
+          ...state.tabs,
+          eco: {
+            status: state.eco.result ? TAB_STATUS.DONE : TAB_STATUS.IDLE,
+            progress: state.eco.result ? 1 : 0,
+            error: null,
+          },
+        },
+      };
     case 'SET_HISTORY':
       return { ...state, history: action.history };
     case 'SET_SELECTED_HISTORY':
@@ -245,14 +447,22 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
         selectedHistoryEntry:
           state.selectedHistoryEntry?.fileHash === action.entry.fileHash ? null : action.entry,
       };
-    case 'RESET':
+    case 'RESET': {
+      revokeUrlMap(state.eco.previewBefore);
+      revokeUrlMap(state.eco.previewAfter);
+      revokeDownload(state.eco.result);
       return {
         ...createInitialState(),
         history: state.history,
         thresholds: state.thresholds,
         initialTab: state.initialTab,
         cmykIncludeAnnotations: state.cmykIncludeAnnotations,
+        eco: {
+          ...createInitialEcoSlice(),
+          options: state.eco.options,
+        },
       };
+    }
     default:
       return state;
   }

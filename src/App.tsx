@@ -13,6 +13,7 @@ import { useAnalysisSessionContext } from '@/features/session/AnalysisSessionCon
 
 const ResultsCmykTab = lazy(() => import('@/features/results/ResultsCmykTab'));
 const ResultsColorPickerTab = lazy(() => import('@/features/results/ResultsColorPickerTab'));
+const ResultsEcoTab = lazy(() => import('@/features/results/ResultsEcoTab'));
 
 function ResultsTabContent() {
   const { activeTab } = useAnalysisSessionContext();
@@ -38,6 +39,13 @@ function ResultsTabContent() {
     return (
       <Suspense fallback={<ProcessingView label={null} processedCount={0} totalCount={null} />}>
         <ResultsColorPickerTab />
+      </Suspense>
+    );
+  }
+  if (activeTab === ANALYSIS_KINDS.ECO) {
+    return (
+      <Suspense fallback={<ProcessingView label="Save Ink" processedCount={0} totalCount={null} />}>
+        <ResultsEcoTab />
       </Suspense>
     );
   }

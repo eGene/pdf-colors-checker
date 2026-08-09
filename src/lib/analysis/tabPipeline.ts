@@ -9,6 +9,8 @@ export const TAB_PIPELINE: Record<AnalysisKind, { needs: TabNeed[] }> = {
   cmyk: { needs: ['pages', 'fileBytes'] },
   profile: { needs: ['fileBytes'] },
   picker: { needs: ['pages'] },
+  // Optimize does not auto-run; safety check fires on tab entry separately.
+  eco: { needs: ['fileBytes'] },
 };
 
 export function tabNeedsMet(
@@ -27,6 +29,8 @@ export interface TabResultSnapshot {
   pages: string[] | null;
   bwPages: number[];
   colorPages: number[];
+  /** Eco tab is ready once safety is known (optimize is explicit). */
+  ecoReady?: boolean;
 }
 
 /** True when a tab is marked done and has displayable results for the current file. */
@@ -43,6 +47,8 @@ export function tabHasResults(tab: AnalysisKind, snapshot: TabResultSnapshot): b
       return snapshot.profileResult != null;
     case 'picker':
       return true;
+    case 'eco':
+      return snapshot.ecoReady === true;
     default:
       return false;
   }

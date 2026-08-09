@@ -5,6 +5,7 @@ export const ANALYSIS_KINDS = {
   CMYK: 'cmyk',
   PROFILE: 'profile',
   PICKER: 'picker',
+  ECO: 'eco',
 } as const;
 
 export const TAB_STATUS = {
@@ -19,6 +20,7 @@ export const ANALYSIS_KIND_LABELS: Record<AnalysisKind, string> = {
   [ANALYSIS_KINDS.CMYK]: 'Ink coverage (CMYK)',
   [ANALYSIS_KINDS.PROFILE]: 'Color profile',
   [ANALYSIS_KINDS.PICKER]: 'Color picker',
+  [ANALYSIS_KINDS.ECO]: 'Save ink',
 };
 
 export const ANALYSIS_KIND_SHORT_LABELS: Record<AnalysisKind, string> = {
@@ -26,6 +28,7 @@ export const ANALYSIS_KIND_SHORT_LABELS: Record<AnalysisKind, string> = {
   [ANALYSIS_KINDS.CMYK]: 'CMYK',
   [ANALYSIS_KINDS.PROFILE]: 'Profile',
   [ANALYSIS_KINDS.PICKER]: 'Picker',
+  [ANALYSIS_KINDS.ECO]: 'Save ink',
 };
 
 export const ANALYSIS_KIND_HEADINGS: Record<AnalysisKind, string> = {
@@ -33,6 +36,7 @@ export const ANALYSIS_KIND_HEADINGS: Record<AnalysisKind, string> = {
   [ANALYSIS_KINDS.CMYK]: 'Ink coverage',
   [ANALYSIS_KINDS.PROFILE]: 'Color profile',
   [ANALYSIS_KINDS.PICKER]: 'Color picker',
+  [ANALYSIS_KINDS.ECO]: 'Save ink',
 };
 
 export const ANALYSIS_TAB_ORDER: { id: AnalysisKind; label: string }[] = [
@@ -40,6 +44,7 @@ export const ANALYSIS_TAB_ORDER: { id: AnalysisKind; label: string }[] = [
   { id: ANALYSIS_KINDS.CMYK, label: ANALYSIS_KIND_LABELS.cmyk },
   { id: ANALYSIS_KINDS.PROFILE, label: ANALYSIS_KIND_LABELS.profile },
   { id: ANALYSIS_KINDS.PICKER, label: ANALYSIS_KIND_LABELS.picker },
+  { id: ANALYSIS_KINDS.ECO, label: ANALYSIS_KIND_LABELS.eco },
 ];
 
 export const DONATE_URL = 'https://app.gosignpdf.com/pricing#pricing-tip-section';
@@ -59,7 +64,7 @@ export const FOOTER_LINKS = {
 export const SHARE_PAGE_URL = 'https://gosignpdf.com/colors-checker/';
 
 export const SHARE_TEXT =
-  'PDF Colors Checker — color vs B&W pages, CMYK ink coverage, and color profile inspection in your browser.';
+  'PDF Colors Checker — color vs B&W pages, CMYK ink coverage, color profile inspection, and Save Ink optimization in your browser.';
 
 export function getShareUrls(): { x: string; linkedin: string; facebook: string } {
   const url = encodeURIComponent(SHARE_PAGE_URL);
@@ -147,6 +152,7 @@ export function normalizeAnalysisKind(value: unknown): AnalysisKind | null {
   if (lower === ANALYSIS_KINDS.CMYK) return ANALYSIS_KINDS.CMYK;
   if (lower === ANALYSIS_KINDS.PROFILE) return ANALYSIS_KINDS.PROFILE;
   if (lower === ANALYSIS_KINDS.PICKER) return ANALYSIS_KINDS.PICKER;
+  if (lower === ANALYSIS_KINDS.ECO) return ANALYSIS_KINDS.ECO;
   return null;
 }
 
@@ -157,5 +163,6 @@ export function createInitialTabStates(): Record<AnalysisKind, TabState> {
     [ANALYSIS_KINDS.CMYK]: { ...idle },
     [ANALYSIS_KINDS.PROFILE]: { ...idle },
     [ANALYSIS_KINDS.PICKER]: { ...idle },
+    [ANALYSIS_KINDS.ECO]: { ...idle },
   };
 }

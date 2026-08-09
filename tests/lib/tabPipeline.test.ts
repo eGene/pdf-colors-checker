@@ -13,6 +13,7 @@ describe('tabPipeline', () => {
     expect(TAB_PIPELINE.cmyk.needs).toContain('fileBytes');
     expect(TAB_PIPELINE.profile.needs).toEqual(['fileBytes']);
     expect(TAB_PIPELINE.picker.needs).toEqual(['pages']);
+    expect(TAB_PIPELINE.eco.needs).toEqual(['fileBytes']);
   });
 
   it('tabNeedsMet checks pages and file bytes', () => {

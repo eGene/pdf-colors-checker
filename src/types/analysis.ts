@@ -1,4 +1,4 @@
-export type AnalysisKind = 'rgb' | 'cmyk' | 'profile' | 'picker';
+export type AnalysisKind = 'rgb' | 'cmyk' | 'profile' | 'picker' | 'eco';
 
 export type TabStatus = 'idle' | 'running' | 'done' | 'error';
 
