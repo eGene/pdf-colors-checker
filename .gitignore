@@ -62,3 +62,6 @@ pids/
 *.seed
 *.pid.lock
 .tern-port
+
+# Local eval / scratch output
+tmp/
