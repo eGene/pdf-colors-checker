@@ -12,6 +12,10 @@ export default defineConfig({
     },
   },
   base: '/colors-checker/',
+  // Eco optimize worker uses dynamic imports (pdfjs / GS); IIFE cannot code-split.
+  worker: {
+    format: 'es',
+  },
   test: {
     environment: 'happy-dom',
     include: ['tests/**/*.test.{ts,tsx}'],
