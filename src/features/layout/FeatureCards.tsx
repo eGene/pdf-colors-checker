@@ -15,7 +15,7 @@ const FEATURES = [
     icon: 'dataset',
     iconClass: 'text-tertiary',
     title: 'Color profile & print readiness',
-    body: 'Detect RGB, CMYK, and grayscale in PDF Resources. List spot-color names and ICC output intent when the document declares one.',
+    body: 'Detect RGB, CMYK, and grayscale in PDF resources and page content. List spot-color names and ICC output intent when the document declares one.',
   },
   {
     icon: 'colorize',

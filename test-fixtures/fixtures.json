@@ -56,7 +56,7 @@
         "rgbColorPages": [],
         "cmykColorPagesAt0": [],
         "cmykColorPagesAtDefault": [],
-        "profileSpaces": [],
+        "profileSpaces": ["GRAYSCALE"],
         "profileHasIcc": true
       }
     },
@@ -119,6 +119,22 @@
       }
     },
     {
+      "id": "northline-print-quote-demo",
+      "file": "northline-print-quote-demo.pdf",
+      "source": "Generated for the GoSignPDF colors-checker demo",
+      "license": "CC0 / public domain",
+      "notes": "Mixed demo exercising direct grayscale, RGB, and CMYK operators, RGB image XObjects, and a NorthlineOrange Separation spot color.",
+      "expected": {
+        "pages": 12,
+        "rgbColorPages": [1, 4, 5, 6, 7, 8, 11, 12],
+        "cmykColorPagesAt0": [1, 4, 5, 6, 7, 8, 11, 12],
+        "cmykColorPagesAtDefault": [1, 4, 5, 6, 7, 8, 11, 12],
+        "profileSpaces": ["CMYK", "GRAYSCALE", "RGB", "SPOT COLOR"],
+        "profileSpots": ["NorthlineOrange"],
+        "profileHasIcc": false
+      }
+    },
+    {
       "id": "color-or-grayscale-test",
       "file": "color-or-grayscale-test.pdf",
       "source": "Generated locally via Ghostscript (see download-fixtures.sh)",
@@ -130,7 +146,7 @@
         "rgbColorPages": [3],
         "cmykColorPagesAt0": [2, 3],
         "cmykColorPagesAtDefault": [2, 3],
-        "profileSpaces": []
+        "profileSpaces": ["CMYK", "GRAYSCALE", "RGB"]
       }
     }
   ]

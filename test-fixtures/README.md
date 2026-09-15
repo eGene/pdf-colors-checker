@@ -26,12 +26,13 @@ Use these tables for **manual** checks in the app (RGB / CMYK / profile tabs). A
 | `grayscale-image.pdf` | 1 | — | — | — | GRAYSCALE |
 | `cmyk-image.pdf` | 1 | 1 | 1 | 1 | CMYK |
 | `pdflatex-image.pdf` | 1 | 1 | 1 | 1 | RGB |
-| `crazyones-pdfa.pdf` | 1 | — | — | — | (ICC output intent only) |
+| `crazyones-pdfa.pdf` | 1 | — | — | — | GRAYSCALE (+ ICC) |
 | `pdflatex-4-pages.pdf` | 4 | — | — | — | (none) |
 | `pdfkit.pdf` | 1 | — | 1 | — | GRAYSCALE, RGB |
 | `spot-and-annotation.pdf` | 1 | 1 | 1 | 1 | CMYK, SPOT COLOR |
 | `ocrmypdf-cmyk.pdf` | 1 | 1 | 1 | 1 | CMYK (+ ICC) |
-| `color-or-grayscale-test.pdf` | 4 | 3 | 2, 3 | 2, 3 | (optional, needs `gs`) |
+| `northline-print-quote-demo.pdf` | 12 | 1, 4–8, 11, 12 | 1, 4–8, 11, 12 | 1, 4–8, 11, 12 | CMYK, GRAYSCALE, RGB, SPOT COLOR |
+| `color-or-grayscale-test.pdf` | 4 | 3 | 2, 3 | 2, 3 | CMYK, GRAYSCALE, RGB (optional, needs `gs`) |
 
 “—” = no color pages expected. Page numbers are **1-based**.
 
@@ -63,7 +64,7 @@ Generated only when `gs` is installed (`bash download-fixtures.sh`).
 | --- | --- | --- |
 | **Color vs B&W (RGB)** | Rendered pixels | `grayscale-image`, `pdflatex-image`, GS page 1 vs 2 |
 | **Ink coverage (CMYK)** | Ghostscript `inkcov` | `cmyk-image`, `color-or-grayscale-test` |
-| **Color profile** | PDF `/ColorSpace` resources (ColorSpace, XObject, Form, Shading, Pattern, and annotation `/AP` appearances) | `ocrmypdf-cmyk` (CMYK), `crazyones-pdfa` (ICC), `pdfkit` (Pattern), `spot-and-annotation` (spot + annotation) |
+| **Color profile** | PDF `/ColorSpace` resources plus direct RGB, CMYK, and grayscale operators in page, Form, Pattern, and annotation appearance streams | `northline-print-quote-demo` (mixed direct operators), `ocrmypdf-cmyk` (CMYK), `crazyones-pdfa` (ICC), `pdfkit` (Pattern), `spot-and-annotation` (spot + annotation) |
 
 RGB and CMYK can disagree on the same file (e.g. RGB images that rasterize as color but carry little CMY ink after conversion). That is expected.
 

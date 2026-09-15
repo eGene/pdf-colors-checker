@@ -33,4 +33,18 @@ describe('profile fixtures', () => {
       });
     }
   }
+
+  it('detects direct device-color operators in the Northline demo', async () => {
+    const result = await analyzeColorProfile(
+      readFixturePdfBuffer('northline-print-quote-demo.pdf'),
+    );
+
+    expect(result.verdict).toBe('This PDF mixes RGB, CMYK, and spot colors');
+    expect(result.perPage[1].colorSpaces).toContain('GRAYSCALE');
+    expect(result.perPage[3].colorSpaces).toContain('RGB');
+    expect(result.perPage[5].colorSpaces).toContain('CMYK');
+    expect(result.perPage[6].colorSpaces).toContain('CMYK');
+    expect(result.perPage[7].colorSpaces).toContain('CMYK');
+    expect(result.perPage[10].spotColors).toContain('NorthlineOrange');
+  });
 });

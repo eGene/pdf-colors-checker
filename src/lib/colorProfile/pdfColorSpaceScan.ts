@@ -1,12 +1,13 @@
 /**
  * Structural PDF color profile analysis via pdf-lib.
- * Scans page Resources (ColorSpace + image XObjects), not raw content-stream operators.
+ * Scans page resources and decoded content streams without relying on pixel appearance.
  */
 import {
   PDFName,
   PDFArray,
   PDFDict,
   PDFRawStream,
+  decodePDFRawStream,
   PDFRef,
   PDFString,
   PDFHexString,
@@ -15,6 +16,7 @@ import {
 } from 'pdf-lib';
 import type { PDFPage } from 'pdf-lib';
 import { componentsToSpace } from './iccDescription';
+import { scanContentStreamColorSpaces } from './contentStreamColorScan';
 
 type PdfContext = import('pdf-lib').PDFDocument['context'];
 type StringSet = Set<string>;
@@ -73,6 +75,43 @@ function dictFromXObject(obj: PDFObject | null): PDFDict | null {
   if (obj instanceof PDFDict) return obj;
   if (obj instanceof PDFRawStream) return obj.dict;
   return null;
+}
+
+function collectFromContentStream(
+  stream: PDFRawStream,
+  spaces: StringSet,
+): void {
+  try {
+    const bytes = decodePDFRawStream(stream).decode();
+    for (const space of scanContentStreamColorSpaces(bytes)) spaces.add(space);
+  } catch (e) {
+    console.warn('Color profile: content stream decode failed', e);
+  }
+}
+
+function collectFromContentObject(
+  ctx: PdfContext,
+  object: PDFObject | PDFRef | null | undefined,
+  spaces: StringSet,
+  seen: RefSeenSet,
+): void {
+  if (!object) return;
+  if (object instanceof PDFRef) {
+    const key = object.toString();
+    if (seen.has(key)) return;
+    seen.add(key);
+  }
+
+  const resolved = resolveObject(ctx, object);
+  if (resolved instanceof PDFRawStream) {
+    collectFromContentStream(resolved, spaces);
+    return;
+  }
+  if (resolved instanceof PDFArray) {
+    for (let i = 0; i < resolved.size(); i++) {
+      collectFromContentObject(ctx, resolved.get(i), spaces, seen);
+    }
+  }
 }
 
 function classifyColorSpaceEntry(
@@ -205,6 +244,9 @@ function collectFromXObjects(
     }
 
     if (subtypeName === 'Form') {
+      if (xobj instanceof PDFRawStream) {
+        collectFromContentStream(xobj, spaces);
+      }
       const res = resolveObject(ctx, dict.lookup(PDFName.of('Resources')));
       if (res instanceof PDFDict) {
         collectFromResources(ctx, res, spaces, spots, seen);
@@ -255,6 +297,9 @@ function collectFromPatterns(
     const dict = pattern instanceof PDFRawStream ? pattern.dict : pattern;
     if (!(dict instanceof PDFDict)) continue;
 
+    if (pattern instanceof PDFRawStream) {
+      collectFromContentStream(pattern, spaces);
+    }
     const shading = dict.lookup(PDFName.of('Shading'));
     if (shading) {
       collectFromShadingObject(ctx, resolveObject(ctx, shading), spaces, spots);
@@ -309,6 +354,9 @@ function collectFromAppearanceStream(
 ): void {
   const dict = apStream instanceof PDFRawStream ? apStream.dict : apStream;
   if (!(dict instanceof PDFDict)) return;
+  if (apStream instanceof PDFRawStream) {
+    collectFromContentStream(apStream, spaces);
+  }
   const res = resolveObject(ctx, dict.lookup(PDFName.of('Resources')));
   if (res instanceof PDFDict) {
     collectFromResources(ctx, res, spaces, spots, seen);
@@ -364,6 +412,7 @@ export function buildVerdict(docSpaces: string[]): string {
   const hasCmyk = docSpaces.includes('CMYK');
   const hasSpot = docSpaces.includes('SPOT COLOR');
   const hasLab = docSpaces.includes('LAB');
+  if (hasRgb && hasCmyk && hasSpot) return 'This PDF mixes RGB, CMYK, and spot colors';
   if (hasRgb && hasCmyk) return 'This PDF mixes RGB and CMYK';
   if (hasRgb && hasSpot) return 'This PDF uses RGB and spot colors';
   if (hasCmyk && hasSpot) return 'This PDF uses CMYK and spot colors';
@@ -387,6 +436,7 @@ export function scanPageColorSpaces(
     if (res instanceof PDFDict) {
       collectFromResources(ctx, res, spaces, spots, seen);
     }
+    collectFromContentObject(ctx, page.node.Contents(), spaces, seen);
     const annots = getPageAnnots(page);
     if (annots instanceof PDFArray) {
       collectFromAnnots(ctx, annots, spaces, spots, seen);

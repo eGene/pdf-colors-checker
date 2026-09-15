@@ -101,6 +101,6 @@ export async function analyzeColorProfile(arrayBuffer: ArrayBuffer): Promise<Col
     icc,
     spotColors,
     perPage,
-    note: 'Based on PDF object structure (Resources), not pixel appearance.',
+    note: 'Based on PDF object structure and content operators, not pixel appearance.',
   };
 }
