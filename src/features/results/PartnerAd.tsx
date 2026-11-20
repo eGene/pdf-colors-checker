@@ -1,17 +1,17 @@
-import { ASKYOURPDF_AFFILIATE_URL } from '@/lib/constants';
+import { PICINEZ_URL } from '@/lib/constants';
 
 export default function PartnerAd() {
   return (
     <a
-      href={ASKYOURPDF_AFFILIATE_URL}
+      href={PICINEZ_URL}
       target="_blank"
-      rel="noopener noreferrer sponsored"
+      rel="noopener noreferrer"
       className="partner-ad-border group mb-6 block no-underline transition-opacity hover:opacity-95 active:opacity-90"
-      aria-label="Chat with your PDF — summarize or ask questions with AskYourPDF"
+      aria-label="Working with images, not PDFs? Try Picinez — batch watermarks, effects, resize, crop for social and more"
     >
-      <div className="partner-ad-frame flex min-h-[5.75rem] w-full flex-col bg-[#0d1117] px-4 py-2.5">
-        <span className="text-[10px] font-medium uppercase tracking-widest text-[#4ade80]">
-          Sponsored
+      <div className="partner-ad-frame flex min-h-[6.25rem] w-full flex-col bg-[#0d1117] px-4 py-3">
+        <span className="text-[11px] font-medium uppercase tracking-widest text-[#4ade80]">
+          Partner
         </span>
 
         <div className="mt-2.5 flex w-full flex-1 items-center gap-4">
@@ -19,16 +19,18 @@ export default function PartnerAd() {
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#30363d] bg-[#161b22]"
             aria-hidden
           >
-            <span className="material-symbols-outlined text-[20px] text-[#9ca3af]">forum</span>
+            <span className="material-symbols-outlined text-[20px] text-[#9ca3af]">
+              photo_library
+            </span>
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[14px] font-semibold leading-tight text-white">
-              Chat with your PDF
+            <p className="truncate text-base font-semibold leading-tight text-white">
+              Working with images, not PDFs?
             </p>
-            <p className="mt-0.5 truncate text-[12px] leading-tight text-[#9ca3af]">
-              Summarize or ask questions ·{' '}
-              <span className="text-[#4ade80]">AskYourPDF</span>
+            <p className="mt-1.5 truncate text-[14px] leading-snug text-[#c9d1d9]">
+              Batch watermarks, effects, resize, crop for social &amp; more ·{' '}
+              <span className="text-[#4ade80]">Picinez</span>
             </p>
           </div>
 
@@ -37,8 +39,8 @@ export default function PartnerAd() {
           </span>
         </div>
 
-        <span className="mt-1.5 hidden self-end text-[9px] italic text-[#9ca3af]/60 sm:inline">
-          Partner · we may earn a commission
+        <span className="mt-1 hidden self-end text-[14px] italic text-[#9ca3af] sm:inline">
+          Free in your browser
         </span>
       </div>
     </a>

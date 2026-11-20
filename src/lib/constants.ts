@@ -50,8 +50,8 @@ export const ANALYSIS_TAB_ORDER: { id: AnalysisKind; label: string }[] = [
 export const DONATE_URL = 'https://app.gosignpdf.com/pricing#pricing-tip-section';
 export const FEEDBACK_URL = 'https://gosignpdf.com/contact-us/';
 
-/** AskYourPDF affiliate referral link. */
-export const ASKYOURPDF_AFFILIATE_URL = 'https://www.askyourpdf.com?via=gosignpdf';
+/** Sister product promo (images, not PDFs). */
+export const PICINEZ_URL = 'https://picinez.com';
 
 export const FOOTER_LINKS = {
   terms: 'https://gosignpdf.com/legal/terms-and-conditions/',
