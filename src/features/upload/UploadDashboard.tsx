@@ -82,8 +82,8 @@ export default function UploadDashboard() {
             <h1 className="mb-4 text-display font-bold text-text-primary">PDF Colors Checker</h1>
             <p className="max-w-2xl text-body-lg text-text-secondary">
               Analyze any PDF for print readiness — color vs black-and-white pages, CMYK ink
-              coverage, color profile inspection, and Save Ink optimization that uses less toner.
-              All processing runs in your browser; your
+              coverage, color profile inspection to check if a PDF is CMYK or RGB (or spot colors / a mix),
+              and Save Ink optimization that uses less toner. All processing runs in your browser; your
               file never leaves your device.
             </p>
           </div>
